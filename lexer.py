@@ -6,32 +6,65 @@ from pprint import pprint as pp
 
 def lex(filename):
     with open(filename) as f:
-        return list(map(tokenize, [t for t in f.read().split() if t != '' or ';' not in t]))
+        return (t for t in f.read().split() if t)
 
+def parse(lib, scope, tokens):
+    t = next(tokens)
 
-def tokenize(s):
-    if s[0] in '()"':
-        return ('symbol', s)
-    if s[0] in ascii_letters and all(c in ascii_letters + digits + '_' for c in s):
-        return ('name', s)
-    elif s[0] in '+-*/%':
-        return ('operator', s)
-    elif all(c in digits for c in s):
-        return ('number', int(s))
-    else:
-        raise ValueError("Not a valid token! -> " + s)
+    while t is not None:
 
+        if t == ')':
+            return None
 
-def parse(scope, tokens):
-    pass
+        elif t == '(':
+            func = next(tokens)
+            args = []
+            val = parse(lib, scope, tokens)
+            while val is not None:
+                args.append(val)
+                val = parse(lib, scope, tokens)
 
+            if func == 'define':
+                scope[args[0]] = args[1]
+            else:
+                val = lib[func](*args)
+                if val is not None:
+                    return val
 
-def mini_eval(tokens):
-    pass
+        elif t == 'define':
+            name = next(tokens)
+            print("name: ", name)
+            val = parse(lib, scope, tokens)
+            scope[name] = val
+
+        elif t == '"':
+            t = next(tokens)
+            string = ''
+            while t != '"':
+                string += t + ' '
+                t = next(tokens)
+            if string[-1] == ' ':
+                string = string[:-1]
+            return string
+
+        elif t in scope:
+            return scope[t]
+
+        elif all(c in digits for c in t):
+            return int(t)
+
+        else:
+            return t
+
+        try:
+            t = next(tokens)
+        except StopIteration:
+            return
 
 
 def main():
-    scope = {
+    lib = {
+        'println': print,
         '+': lambda x, y: x + y,
         '-': lambda x, y: x - y,
         '*': lambda x, y: x * y,
@@ -39,8 +72,7 @@ def main():
         '%': lambda x, y: x % y,
     }
     tokens = lex('mini.mini')
-    parse(scope, tokens)
-    pp(tokens)
+    parse(lib, {}, tokens)
 
 
 if __name__ == "__main__":
