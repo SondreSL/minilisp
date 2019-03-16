@@ -1,0 +1,9 @@
+( define a 4 )
+
+( println " Hello World " )
+
+( println 10 )
+
+( define ans ( + 2 2 ) )
+
+( println ans )
