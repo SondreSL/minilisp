@@ -1,0 +1,59 @@
+(let cons (fn (x y)
+            (fn (msg)
+              (if (eq? msg "head") x y))))
+
+(let head (fn (c) (c "head")))
+(let tail (fn (c) (c "tail")))
+
+(let innerprint
+  (fn (xs)
+    (if (nil? (tail xs))
+      (print (head xs))
+      (begin (print (head xs))
+             (innerprint (tail xs))))))
+
+(let printlist
+  (fn (xs)
+    (begin (print "[")
+           (innerprint xs)
+           (println "]"))))
+
+(let nil "nil")
+
+(let nil? (fn (x) (eq? x nil)))
+
+(let nums (cons 1 (cons 2 (cons 3 (cons 4 (cons 5 (cons 6 nil)))))))
+
+(printlist nums)
+
+(let reduce 
+  (fn (proc def xs)
+    (if (nil? xs)
+      def
+      (proc (head xs) (reduce proc def (tail xs))))))
+
+(let filter
+  (fn (pred xs)
+    (if (nil? xs)
+      nil
+      (if (pred (head xs))
+        (cons (head xs) (filter pred (tail xs)))
+        (filter pred (tail xs))))))
+
+(let map
+  (fn (proc xs)
+    (if (nil? xs)
+      nil
+      (cons (proc (head xs)) (map proc (tail xs))))))
+
+(let square (fn (x) (* x x)))
+(let sum (fn (xs) (reduce + 0 xs)))
+
+(println "Got here")
+
+(let sqe 
+  (fn (xs) 
+    (sum (map square (filter (fn (x) (eq? 0 (% x 2))) xs)))))
+
+(println (sqe nums))
+
