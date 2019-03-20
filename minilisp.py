@@ -1,4 +1,4 @@
-"""A basic scheme interpreter"""
+from sys import argv
 import math
 import re
 import operator
@@ -11,6 +11,8 @@ Atom   = (Symbol, Number)
 List   = list
 Exp    = (Atom, List)
 
+DEBUG = False
+
 def readfile(filename):
     return open(filename).read()
 
@@ -18,13 +20,15 @@ def lex(string):
     return (tokenize(t) for t in string.replace('(', ' ( ').replace(')', ' ) ').split())
 
 def tokenize(t):
-    if re.match(r'\d+$', t): return int(t)
-    elif re.match(r'\d+\.\d+', t): return float(t)
-    elif t == '#t': return True
-    elif t == '#f': return False
-    else: return t
+    if   re.match(r'\d+$', t):      return int(t)
+    elif re.match(r'\d+\.\d+', t):  return float(t)
+    else:                           return t
 
 def eval(env, stmt):
+    if DEBUG:
+        print('Stmt:', stmt)
+    if stmt in ('#t', '#f'):
+        return stmt == '#t'
     if isinstance(stmt, Symbol):        # Variable name
         if stmt[0] == '"': return stmt[1:-1]
         return env[stmt]
@@ -36,6 +40,14 @@ def eval(env, stmt):
     if stmt[0] == 'let':              # Variable definitions
         _, symbol, exp = stmt
         env[symbol] = eval(env, exp)
+    elif stmt[0] == 'fn':
+        return lambda *xs: eval({**env, **{x: y for x, y in zip([x for x in stmt[1]], xs)}}, stmt[2])
+    elif stmt[0] == 'begin':
+        if DEBUG:
+            print("Inside begin")
+            print(stmt)
+        for s in stmt[1:]:
+            eval(env, s)
     else:
         proc = eval(env, stmt[0])
         args = [eval(env, arg) for arg in stmt[1:]]
@@ -44,7 +56,7 @@ def eval(env, stmt):
 def parse(tokens):
     tree = []
     t = next(tokens)
-    while t:
+    while True:
         if t == '(': tree.append(parse(tokens))
         elif t == ')': return tree
         elif isinstance(t, str) and t[0] == '"':
@@ -67,25 +79,21 @@ def main_eval(env, stmts):
         eval(env, stmt)
 
 def main():
+    filename = argv[1]
     global_env = {**vars(math)}
     global_env.update({
-        'println': print,
-        '+': lambda *x: sum(x),
+        'println': lambda x: print(x),
+        'print': lambda x: print(x, end=' '),
+        '+': operator.add,
         '-': lambda *x: reduce(operator.sub, x),
         '*': lambda *x: reduce(operator.mul, x),
         '/': operator.floordiv,
         '%': operator.mod,
-        'eq?': lambda *x: all(operator.eq(a, b) for a, b in zip(x, x[:1])),
-        'list': lambda *x: x,
+        'eq?': operator.eq,
         'list?': lambda x: isinstance(x, list),
-        'map': lambda proc, *x: [proc(y) for y in x[0]],
-        'square': lambda x: x ** 2
     })
-    tokens = lex(readfile('mini.mini'))
+    tokens = lex(readfile(filename))
     main_eval(global_env, parse(tokens))
-    # while True:
-    #     i = input('->')
-    #     main_eval(global_env, parse(lex(i)))
 
 if __name__ == "__main__":
     main()
