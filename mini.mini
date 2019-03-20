@@ -1,11 +1,21 @@
-( println " Hello World " )
+(println 10)
 
-( println 10 )
+(let ans (+ 2.0 2 2 2))
 
-( define ans 5 )
+(println ans)
 
-( println ans )
+(println (factorial 5))
 
-( define a ( + 2 2 ) )
+(println (if (eq? 10 10)
+           "True"
+           "False"))
 
-( println a )
+(println (map square (list 1 2 3)))
+
+(let a (+ 2 2))
+
+(println a)
+
+(println (+ (* a a) (* a a)))
+
+(println "Hello World")
