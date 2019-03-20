@@ -1,10 +1,8 @@
 # Mini Lisp - A tiny lisp-based programming language
 
-### Why?
-We liked the idea of a language that is very easy to lex and parse.
+## An interpreter written in Python
 
-Lisp
-https://duckduckgo.com/?q=lisp+interpreter&t=ffab&ia=web
+Lisp articles
 http://pythonpracticeprojects.com/lisp.html
 http://www.paulgraham.com/avg.html
 http://norvig.com/lispy.html
